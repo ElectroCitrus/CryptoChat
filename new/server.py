@@ -1,4 +1,4 @@
-import socket, json
+import socket, json, time
 
 SOCKET = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 SOCKET.bind(('192.168.1.41', 9090))
@@ -13,8 +13,12 @@ while not q:
             clients.append(addr)
         
         req = json.loads(data.decode('utf8'))
+        print('Req: ' + json.dumps(req))
         res = dict()
-        # pr - тип протокола (0x00 - Состояние авторизации 0x01 - Авторизация успешна 0x02 - Авторизация отклонена 0x03 - Сообщение 0x0-1 - Неизвестный протокол)
+        
+        
+
+        # pr - тип протокола (0x00 - Запрос авторизации 0x01 - Авторизация успешна 0x02 - Авторизация отклонена 0x03 - Сообщение 0x0-1 - Неизвестный протокол)
         if req['pr'] == 0x00:
             if req['d'].split(';')[0] == 'u1' and req['d'].split(';')[1] == 'p1':
                 res['pr'] = 0x01
@@ -23,9 +27,11 @@ while not q:
         else:
             res['pr'] = 0x0-1
 
-        print('Req: ' + json.dumps(req))
         print('Res: ' + str(res))
         SOCKET.sendto(json.dumps(res).encode('utf8'), addr)
+        time.sleep(2)
+        # print('Seconds send')
+        # SOCKET.sendto(json.dumps(res).encode('utf8'), addr)
 
         for client in clients:
             if addr != client:
