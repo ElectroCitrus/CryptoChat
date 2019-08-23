@@ -6,11 +6,8 @@ import socket, threading, json, time
 
 SOCKET = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 
-f1 = False
-f2 = False
-a = 0
-
 def sendPacketAndReceive(server: tuple, data: dict, cb: callable):
+    global msgFlag
     tmp = b''
     SOCKET.connect(server)
     SOCKET.send(json.dumps(data).encode('utf8'))
@@ -19,11 +16,11 @@ def sendPacketAndReceive(server: tuple, data: dict, cb: callable):
         tmp += res
         res = SOCKET.recv(1024)
     SOCKET.close()
+    msgFlag = True
     cb(res)
 
 def cb1(udata: bytes):
-    global f1
-    f1 = True
+    pass
 
 def T1():
     sendPacketAndReceive(('192.168.1.41', 9090), dict({
@@ -31,13 +28,15 @@ def T1():
         'd': 'u1;p1'
     }), cb1)
 
-threading.Thread(target=T1).start()
+# threading.Thread(target=T1).start()
 
-while f2:
-    time.sleep(0.1)
-    while f1:
-        a += 1
-        f1 = False
-        f2 = False
+msgFlag = False
+SocketState = False
 
-print(str(a))
+def main():
+    while SocketState:
+        if msgFlag:
+            msgFlag = False
+
+T1()
+main()
